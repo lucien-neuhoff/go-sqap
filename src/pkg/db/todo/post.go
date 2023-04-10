@@ -1,4 +1,4 @@
-package db_todos
+package db_todo
 
 import (
 	"fmt"
@@ -7,9 +7,8 @@ import (
 )
 
 func Post(todo *helper.Todo) {
-	log.Println(todo.ID)
 	_, err := helper.DB.Query("INSERT INTO todos (id, title, description, complete) VALUES ('" + todo.ID + "','" + todo.Title + "','" + todo.Description + "','" + fmt.Sprint(todo.Complete) + "')")
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 }

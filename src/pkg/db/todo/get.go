@@ -1,4 +1,4 @@
-package db_todos
+package db_todo
 
 import (
 	"fmt"
@@ -31,7 +31,7 @@ func GetById(id string) (helper.Todo, string) {
 
 	err := helper.DB.QueryRow("SELECT * FROM todos WHERE id="+id).Scan(&todo.ID, &todo.Title, &todo.Description, &todo.Complete)
 	if err != nil {
-		log.Println("GetById: ", err)
+		log.Println("db.todo.GetById: ", err)
 		return todo, fmt.Sprintf("Todo with id '%s' not found", id)
 	}
 

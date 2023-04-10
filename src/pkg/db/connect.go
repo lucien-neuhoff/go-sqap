@@ -16,7 +16,7 @@ func Connect(host string, port int) *sql.DB {
 		Passwd: helper.ENVS["DBPASS"],
 		Net:    "tcp",
 		Addr:   host + ":" + fmt.Sprint(port),
-		DBName: helper.ENVS["DBTABLE"],
+		DBName: helper.ENVS["DBNAME"],
 	}
 
 	log.Println("Connecting to '" + cfg.Addr + "' to table '" + cfg.DBName + "' with user '" + cfg.User + "' over '" + cfg.Net + "'")

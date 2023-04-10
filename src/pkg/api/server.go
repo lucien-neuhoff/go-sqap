@@ -5,7 +5,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	todos "go-sql/pkg/api/todos"
+	todo "go-sql/pkg/api/todo"
+	user "go-sql/pkg/api/user"
 	"go-sql/pkg/helper"
 )
 
@@ -14,10 +15,13 @@ var router *gin.Engine
 func Start(host string, port int) {
 	router = gin.Default()
 
-	router.GET("/todos", todos.Get)
-	router.GET("/todos/:id", todos.GetById)
+	router.GET("/todos", todo.Get)
+	// Todo: edit link to account for user_id
+	router.GET("/todos/:id", todo.GetById)
+	router.POST("/todos", todo.Post)
 
-	router.POST("/todos", todos.Post)
+	router.GET("/users/auth/signin/:email/:password", user.SignIn)
+	router.POST("/users/auth/signup", user.SignUp)
 
 	router.GET("/kill", closeDb)
 
