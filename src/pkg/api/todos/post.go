@@ -11,8 +11,8 @@ import (
 
 func Post(c *gin.Context) {
 	id := c.DefaultPostForm("id", "nil")
-	title := c.DefaultPostForm("id", "None")
-	description := c.DefaultPostForm("id", "")
+	title := c.DefaultPostForm("title", "None")
+	description := c.DefaultPostForm("description", "")
 
 	if id == "nil" {
 		log.Println("api.Post: mising id")

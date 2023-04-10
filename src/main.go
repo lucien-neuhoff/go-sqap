@@ -30,7 +30,7 @@ func main() {
 
 func getEnvs() {
 	var err error
-	helper.ENVS, err = godotenv.Read(".env")
+	helper.ENVS, err = godotenv.Read("../.env")
 
 	if err != nil {
 		log.Fatal(err)
