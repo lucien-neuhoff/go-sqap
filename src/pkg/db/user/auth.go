@@ -6,10 +6,10 @@ import (
 	"log"
 )
 
-func SignUp(user helper.User) string {
+func Create(user helper.User) string {
 	_, err := helper.DB.Query("INSERT INTO users (name, password_hash, email) VALUES ('" + user.Name + "','" + user.PasswordHash + "','" + user.Email + "')")
 	if err != nil {
-		log.Println("db.user.SignUp", err)
+		log.Println("db.user.Create", err)
 		return fmt.Sprintf("Error while creating user with email '%s'", user.Email)
 	}
 

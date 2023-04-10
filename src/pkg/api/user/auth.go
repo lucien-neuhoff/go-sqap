@@ -72,7 +72,7 @@ func SignUp(c *gin.Context) {
 
 	user := helper.User{Name: name, PasswordHash: string(password_hash), Email: email}
 
-	msg := db_user.SignUp(user)
+	msg := db_user.Create(user)
 
 	c.JSON(0, msg)
 }
