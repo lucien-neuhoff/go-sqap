@@ -22,7 +22,7 @@ func GetByEmail(email string) (helper.User, string) {
 	err := helper.DB.QueryRow("SELECT (id, name, password_hash) FROM users WHERE email='"+email+"'").Scan(&user.ID, &user.Name, &user.PasswordHash)
 	if err != nil {
 		log.Println("db.user.GetByEmail: ", err)
-		return user, fmt.Sprintf("User with email '%s' not found", email)
+		return helper.User{}, fmt.Sprintf("User with email '%s' not found", email)
 	}
 
 	return user, ""

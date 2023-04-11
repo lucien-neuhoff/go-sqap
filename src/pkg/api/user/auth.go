@@ -16,7 +16,7 @@ func SignIn(c *gin.Context) {
 	if !found {
 		msg := "api.user.SignIn: Missing email"
 		log.Println(msg)
-		c.JSON(http.StatusBadRequest, msg)
+		c.JSON(http.StatusBadRequest, "auth/missing-email")
 		return
 	}
 	email = strings.Replace(email, "%40", "@", 1)
@@ -25,20 +25,20 @@ func SignIn(c *gin.Context) {
 	if !found {
 		msg := "api.user.SignIn: Missing password"
 		log.Println(msg)
-		c.JSON(http.StatusBadRequest, msg)
+		c.JSON(http.StatusBadRequest, "auth/missing-password")
 		return
 	}
 
-	user, msg := db_user.GetByEmail(email)
+	user, err := db_user.GetByEmail(email)
 
 	if user.PasswordHash != password_hash {
 		log.Println("api.user.SignIn: Passwords do not match")
-		c.JSON(http.StatusBadRequest, "Passwords do not match")
+		c.JSON(http.StatusBadRequest, "auth/password-does-not-match")
 		return
 	}
 
-	if msg != "" {
-		c.JSON(http.StatusBadRequest, msg)
+	if err != "" {
+		c.JSON(http.StatusBadRequest, "auth/email-not-found")
 		return
 	}
 
@@ -47,26 +47,22 @@ func SignIn(c *gin.Context) {
 
 func SignUp(c *gin.Context) {
 	name := c.DefaultPostForm("name", "nil")
-	// Password Hashing has to be done client side
-	password_hash := c.DefaultPostForm("password", "nil")
+	password_hash := c.DefaultPostForm("password", "nil") // todo: hash the password on the client side
 	email := c.DefaultPostForm("email", "nil")
 
 	if name == "nil" {
-		msg := "api.user.SignUp: Missing name"
-		log.Println(msg)
-		c.JSON(http.StatusBadRequest, msg)
+		log.Println("api.user.SignUp: Missing name")
+		c.JSON(http.StatusBadRequest, "auth/missing-username")
 		return
 	}
 	if password_hash == "nil" {
-		msg := "api.user.SignUp: Missing password"
-		log.Println(msg)
-		c.JSON(http.StatusBadRequest, msg)
+		log.Println("api.user.SignUp: Missing password")
+		c.JSON(http.StatusBadRequest, "auth/missing-password")
 		return
 	}
 	if email == "nil" {
-		msg := "api.user.SignUp: Missing email"
-		log.Println(msg)
-		c.JSON(http.StatusBadRequest, msg)
+		log.Println("api.user.SignUp: Missing email")
+		c.JSON(http.StatusBadRequest, "auth/missing-email")
 		return
 	}
 

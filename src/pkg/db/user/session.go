@@ -8,12 +8,21 @@ import (
 	"time"
 )
 
-func UpdateSession(user helper.User) string {
-	// 2023-04-11 08:55:21.22582018
-	session_timed_out := SessionTimedOut(user.SessionStartedAt.Time)
-	if session_timed_out {
-
+func UpdateSession(user helper.User) error {
+	if !SessionTimedOut(user.SessionStartedAt.Time) {
+		return nil
 	}
+
+	session_key, err := helper.GenerateSessionKey(user)
+	if err != nil {
+		log.Panic("db.user.UpdateSession: ", err)
+	}
+
+	query, err := helper.DB.Prepare("INSERT INTO users (session_key, session_started_at) VALUES (?, ?)")
+	if err != nil {
+		log.Panic("db.user.UpdateSession: ", err)
+	}
+	query.Exec(&session_key, time.Now())
 
 	// // Updates the session_key
 	// found, session_key := GetSessionKey(user)
@@ -23,7 +32,7 @@ func UpdateSession(user helper.User) string {
 	// 	return msg
 	// }
 
-	return ""
+	return nil
 }
 
 func GetSessionKey(user helper.User) (found bool, msg sql.NullString) {
