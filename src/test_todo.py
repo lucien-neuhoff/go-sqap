@@ -8,10 +8,11 @@ load_dotenv()
 url = f'http://{os.getenv("APIHOST")}:{os.getenv("APIPORT")}/todos'
 
 
-test_user = {"id": 0, "name": "User", "password": "1234", "mail": "user@mail.com"}
+test_user = {"id": 1, "name": "User", "password": "1234", "mail": "user@mail.com"}
 
 todo = {
     "id": str(-random.randint(0, 999)),
+    "user_id": test_user["id"],
     "title": "todo",
     "description": "description",
     "complete": False,

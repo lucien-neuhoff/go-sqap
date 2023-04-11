@@ -17,9 +17,9 @@ func Create(user helper.User) string {
 }
 
 func GetByEmail(email string) (helper.User, string) {
-	var user helper.User
+	user := helper.User{Email: email}
 
-	err := helper.DB.QueryRow("SELECT * FROM users WHERE email='"+email+"'").Scan(&user.ID, &user.Name, &user.PasswordHash, &user.Email)
+	err := helper.DB.QueryRow("SELECT (id, name, password_hash) FROM users WHERE email='"+email+"'").Scan(&user.ID, &user.Name, &user.PasswordHash)
 	if err != nil {
 		log.Println("db.user.GetByEmail: ", err)
 		return user, fmt.Sprintf("User with email '%s' not found", email)

@@ -35,7 +35,7 @@ func Connect(host string, port int) *sql.DB {
 		log.Fatal(pingErr)
 	}
 
-	log.Println("Successfully connected to MySQL database")
+	log.Println("db.Connect: Successfully connected to MySQL database")
 
 	return db
 }

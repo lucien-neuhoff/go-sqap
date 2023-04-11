@@ -31,5 +31,3 @@ PRIMARY KEY (`id`),
 KEY `FK_user_id` (`user_id`),
 CONSTRAINT `FK_user` FOREIGN KEY `FK_user_id` (`user_id`) REFERENCES `users` (`id`)
 );
-
-INSERT INTO todos (user_id, title, description, complete) VALUES (0, "Todo", "This a todo", 0);

@@ -5,6 +5,9 @@ import "database/sql"
 var DB *sql.DB
 var ENVS map[string]string
 
+// Seconds
+var SESSION_TIMEOUT = 1_800
+
 type Todo struct {
 	ID          string `json:"id"`
 	UserID      string `json:"user_id"`
@@ -14,13 +17,10 @@ type Todo struct {
 }
 
 type User struct {
-	ID           string `json:"id"`
-	Name         string `json:"name"`
-	PasswordHash string `json:"password"`
-	Email        string `json:"email"`
-}
-
-type Message struct {
-	From    string `json:"from"`
-	Content string `json:"message"`
+	ID               string         `json:"id"`
+	Name             string         `json:"name"`
+	PasswordHash     string         `json:"password"`
+	Email            string         `json:"email"`
+	SessionKey       sql.NullString `json:"session_key"`
+	SessionStartedAt sql.NullTime   `json:"session_started_at"`
 }
