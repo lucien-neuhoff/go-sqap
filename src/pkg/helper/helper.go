@@ -1,9 +1,7 @@
 package helper
 
 import (
-	"crypto/sha1"
 	"database/sql"
-	"encoding/base64"
 	"math/rand"
 	"time"
 )
@@ -11,8 +9,8 @@ import (
 var DB *sql.DB
 var ENVS map[string]string
 
-// Seconds
-var SESSION_TIMEOUT = 1_800
+// Miliseconds
+var SESSION_TIMEOUT = 1_800_000
 
 type Todo struct {
 	ID          string `json:"id"`
@@ -29,16 +27,6 @@ type User struct {
 	Email            string         `json:"email"`
 	SessionKey       sql.NullString `json:"session_key"`
 	SessionStartedAt sql.NullTime   `json:"session_started_at"`
-}
-
-func GenerateSessionKey(user User) (string, error) {
-	key := RandomStringGenerator(36)
-
-	hasher := sha1.New()
-	hasher.Write([]byte(key))
-
-	return base64.URLEncoding.EncodeToString(hasher.Sum(nil)), nil
-
 }
 
 const symbols = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"

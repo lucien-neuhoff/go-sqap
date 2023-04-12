@@ -2,37 +2,50 @@ package db_user
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"go-sql/pkg/helper"
 	"log"
 	"time"
 )
 
-func UpdateSession(user helper.User) error {
+func UpdateSession(user helper.User) (updated_user helper.User, err error) {
+	// Session still up
 	if !SessionTimedOut(user.SessionStartedAt.Time) {
-		return nil
+		return user, nil
 	}
+
+	log.Printf("db.user.UpdateSession: Session timed out for user '%s'", user.Name)
+
+	// Session key valid
+	valid, err := VerifySessionKey(user.ID, user.SessionKey.String)
+	if err != nil {
+		return user, err
+	}
+
+	if valid {
+		return user, nil
+	}
+
+	log.Printf("db.user.UpdateSession: Session key mismatch, generating a new one for user '%s'", user.Name)
 
 	session_key, err := helper.GenerateSessionKey(user)
 	if err != nil {
-		log.Panic("db.user.UpdateSession: ", err)
+		log.Println("db.user.UpdateSession: ", err)
 	}
+
+	now := time.Now()
 
 	query, err := helper.DB.Prepare("INSERT INTO users (session_key, session_started_at) VALUES (?, ?)")
 	if err != nil {
-		log.Panic("db.user.UpdateSession: ", err)
+		log.Println("db.user.UpdateSession: ", err)
 	}
-	query.Exec(&session_key, time.Now())
+	query.Exec(&session_key, now)
 
-	// // Updates the session_key
-	// found, session_key := GetSessionKey(user)
-	// if !found {
-	// 	msg := fmt.Sprintf("SessionKey not found for user with id '%s'", user.ID)
-	// 	log.Println("db.user.UpdateSession", msg)
-	// 	return msg
-	// }
+	user.SessionKey.String = session_key
+	user.SessionStartedAt.Time = now
 
-	return nil
+	return user, nil
 }
 
 func GetSessionKey(user helper.User) (found bool, msg sql.NullString) {
@@ -49,4 +62,18 @@ func GetSessionKey(user helper.User) (found bool, msg sql.NullString) {
 
 func SessionTimedOut(session_started_at time.Time) bool {
 	return (time.Now().UTC().UnixMilli() - session_started_at.UnixMilli()) > int64(helper.SESSION_TIMEOUT)
+}
+
+func VerifySessionKey(user_id string, session_key string) (valid bool, err error) {
+	var user_session_key string
+
+	helper.DB.QueryRow("SELECT session_key FROM users WHERE id=?", user_id).Scan(&user_session_key)
+
+	if user_session_key == session_key {
+		return true, nil
+	}
+
+	log.Printf("db.user.VerifySessionKey: \n	user_session_key=%s\n	session_key=%s", user_session_key, session_key)
+
+	return false, errors.New("session_key mismatch")
 }

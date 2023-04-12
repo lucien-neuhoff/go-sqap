@@ -1,7 +1,8 @@
 package db_todo
 
 import (
-	"fmt"
+	"errors"
+	db_user "go-sql/pkg/db/user"
 	helper "go-sql/pkg/helper"
 	"log"
 )
@@ -11,14 +12,14 @@ func Get() []helper.Todo {
 
 	rows, err := helper.DB.Query("SELECT * FROM todos")
 	if err != nil {
-		log.Println("db.Get: ", err)
+		log.Printf("db.Get: %s", err)
 	}
 	defer rows.Close()
 
 	for rows.Next() {
 		var todo helper.Todo
-		if err := rows.Scan(&todo.ID, &todo.Title, &todo.Description, &todo.Complete); err != nil {
-			log.Println("db.Get: ", err)
+		if err := rows.Scan(&todo.ID, &todo.UserID, &todo.Title, &todo.Description, &todo.Complete); err != nil {
+			log.Printf("db.Get: %s", err)
 		}
 		todos = append(todos, todo)
 	}
@@ -26,14 +27,22 @@ func Get() []helper.Todo {
 	return todos
 }
 
-func GetById(id string) (helper.Todo, string) {
-	var todo helper.Todo
+func GetById(todo_id string, user_id string, session_key string) (helper.Todo, error) {
+	var todo = helper.Todo{ID: todo_id}
 
-	err := helper.DB.QueryRow("SELECT * FROM todos WHERE id="+id).Scan(&todo.ID, &todo.Title, &todo.Description, &todo.Complete)
+	valid, err := db_user.VerifySessionKey(user_id, session_key)
 	if err != nil {
-		log.Println("db.todo.GetById: ", err)
-		return todo, fmt.Sprintf("Todo with id '%s' not found", id)
+		log.Println("db.todo.GetById::VerifySessionKey: ", err)
+		return todo, err
+	}
+	if !valid {
+		return todo, errors.New("unvalid session")
 	}
 
-	return todo, ""
+	err = helper.DB.QueryRow("SELECT * FROM todos WHERE id=?", todo_id).Scan(&todo.ID, &todo.UserID, &todo.Title, &todo.Description, &todo.Complete)
+	if err != nil {
+		return todo, err
+	}
+
+	return todo, nil
 }

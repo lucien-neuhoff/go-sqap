@@ -11,7 +11,7 @@ url = f'http://{os.getenv("APIHOST")}:{os.getenv("APIPORT")}/users/auth'
 rand = random.randint(100, 999)
 user = {
     "name": f"User{rand}",
-    "password": generate_password_hash("password1234", "sha256"),
+    "password": "1234",
     "email": f"user{rand}@mail.com",
 }
 

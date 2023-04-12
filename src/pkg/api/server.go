@@ -16,7 +16,6 @@ func Start(host string, port int) {
 	router = gin.Default()
 
 	router.GET("/todos", todo.Get)
-	// Todo: edit link to account for user_id
 	router.GET("/todos/:id", todo.GetById)
 	router.POST("/todos", todo.Post)
 

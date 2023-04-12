@@ -14,56 +14,50 @@ import (
 func SignIn(c *gin.Context) {
 	email, found := c.Params.Get("email")
 	if !found {
-		msg := "api.user.SignIn: Missing email"
-		log.Println(msg)
 		c.JSON(http.StatusBadRequest, "auth/missing-email")
-		return
+		log.Print("api.user.SignIn: Missing email")
 	}
 	email = strings.Replace(email, "%40", "@", 1)
 
 	password_hash, found := c.Params.Get("password")
 	if !found {
-		msg := "api.user.SignIn: Missing password"
-		log.Println(msg)
 		c.JSON(http.StatusBadRequest, "auth/missing-password")
-		return
+		log.Print("api.user.SignIn: Missing password")
 	}
 
 	user, err := db_user.GetByEmail(email)
 
 	if user.PasswordHash != password_hash {
-		log.Println("api.user.SignIn: Passwords do not match")
-		c.JSON(http.StatusBadRequest, "auth/password-does-not-match")
-		return
+		c.JSON(http.StatusBadRequest, "auth/password-mismatch")
+		log.Printf("api.user.SignIn: Password mismatch\n	user.PasswordHash=%s\n	password_hash=%s", user.PasswordHash, password_hash)
 	}
 
-	if err != "" {
+	if err != nil {
 		c.JSON(http.StatusBadRequest, "auth/email-not-found")
-		return
+		log.Printf("api.user.SignIn: No user was found with the email '%s'", email)
 	}
+
+	db_user.UpdateSession(user)
 
 	c.JSON(http.StatusOK, user)
 }
 
 func SignUp(c *gin.Context) {
 	name := c.DefaultPostForm("name", "nil")
-	password_hash := c.DefaultPostForm("password", "nil") // todo: hash the password on the client side
+	password_hash := c.DefaultPostForm("password", "nil")
 	email := c.DefaultPostForm("email", "nil")
 
 	if name == "nil" {
-		log.Println("api.user.SignUp: Missing name")
 		c.JSON(http.StatusBadRequest, "auth/missing-username")
-		return
+		log.Print("api.user.SignUp: Missing name")
 	}
 	if password_hash == "nil" {
-		log.Println("api.user.SignUp: Missing password")
 		c.JSON(http.StatusBadRequest, "auth/missing-password")
-		return
+		log.Print("api.user.SignUp: Missing password")
 	}
 	if email == "nil" {
-		log.Println("api.user.SignUp: Missing email")
 		c.JSON(http.StatusBadRequest, "auth/missing-email")
-		return
+		log.Print("api.user.SignUp: Missing email")
 	}
 
 	user := helper.User{Name: name, PasswordHash: string(password_hash), Email: email}
