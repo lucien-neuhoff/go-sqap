@@ -16,7 +16,8 @@
 │   │       └── create_public_keys_table.sql
 │   ├── handlers
 │   │   ├── auth_handler.go
-│   │   └── user_handler.go
+│   │   ├── user_handler.go
+│   │   └── validate_create_user_request.go
 │   ├── models
 │   │   ├── login_request.go
 │   │   ├── public_key.go
@@ -31,6 +32,7 @@
 │   │   ├── auth_service.go
 │   │   └── user_service.go
 │   └── utils
+│       ├── utils.go
 │       └── logger.go
 ├── test
 │   ├── controllers
