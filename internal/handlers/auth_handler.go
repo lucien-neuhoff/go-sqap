@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"go-sqap/internal/models"
 	"go-sqap/internal/services"
 	"go-sqap/internal/utils"
@@ -30,17 +31,18 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		return
 	}
 
-	user, err := h.authService.Authenticate(loginRequest)
+	user, err := h.authService.Authenticate(context.Background(), &loginRequest)
 	if err != nil {
 		h.logger.Errorf("failed to authenticate user: %v", err)
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "auth/invalid-credentials"})
 	}
 
-	session, err := h.authService.CreateSession(user)
+	session, err := h.authService.CreateSession(context.Background(), user.UUID)
 	if err != nil {
 		h.logger.Errorf("failed to create session: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "auth/internal-server-error"})
 	}
 
-	c.JSON(http.StatusOK, gin.H{"session_id": session.ID})
+	// TODO: Send the session token with asymetric encryption
+	c.JSON(http.StatusOK, gin.H{"session_uuid": session.UUID})
 }

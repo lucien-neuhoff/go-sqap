@@ -1,6 +1,8 @@
 package services
 
 import (
+	"context"
+	"errors"
 	"go-sqap/internal/models"
 	"go-sqap/internal/repositories"
 	"go-sqap/internal/utils"
@@ -9,6 +11,8 @@ import (
 )
 
 type AuthService interface {
+	Authenticate(ctx context.Context, loginRequest *models.LoginRequest) (*models.Session, error)
+	CreateSession(ctx context.Context, user_id string) (*models.Session, error)
 }
 
 type authService struct {
@@ -25,21 +29,29 @@ func NewAuthService(userRepo repositories.UserRepository, sessionRepository repo
 	}
 }
 
-func (s *authService) Authenticate(loginRequest *models.LoginRequest) (*models.Session, error) {
-	user, err := s.userRepository.FindByEmail(loginRequest.Email)
+func (s *authService) Authenticate(ctx context.Context, loginRequest *models.LoginRequest) (*models.Session, error) {
+	user, err := s.userRepository.GetUserByEmail(context.Background(), loginRequest.Email)
 	if err != nil {
 		return nil, err
 	}
 
-	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(loginRequest.Password))
-	if err != nil {
-		return nil, err
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(loginRequest.Password)); err != nil {
+		return nil, errors.New("auth/invalid-credentials")
 	}
 
-	session, err := s.sessionRepository.Create(user.ID)
+	session, err := s.sessionRepository.CreateSession(ctx, user.UUID)
 	if err != nil {
 		return nil, err
 	}
 
 	return session, err
+}
+
+func (s *authService) CreateSession(ctx context.Context, user_id string) (*models.Session, error) {
+	session, err := s.sessionRepository.CreateSession(ctx, user_id)
+	if err != nil {
+		return nil, err
+	}
+
+	return session, nil
 }

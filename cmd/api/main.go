@@ -27,8 +27,8 @@ func main() {
 	userService := services.NewUserService(userRepo, logger)
 	authService := services.NewAuthService(userRepo, sessionRepo, logger)
 
-	userHandler := handlers.NewUserHandler(&userService, logger)
-	authHandler := handlers.NewAuthHandler(&authService, logger)
+	userHandler := handlers.NewUserHandler(userService, logger)
+	authHandler := handlers.NewAuthHandler(authService, logger)
 
 	router := gin.Default()
 
