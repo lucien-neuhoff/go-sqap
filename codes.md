@@ -1,0 +1,3 @@
+-   `auth/invalied-request` failed to parse request
+-   `auth/invalid-credentials` no user were found with those credentials
+-   `auth/internal-server-error` internal error server error while processing request
