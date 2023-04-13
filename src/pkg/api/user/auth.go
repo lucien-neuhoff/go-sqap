@@ -14,27 +14,31 @@ import (
 func SignIn(c *gin.Context) {
 	email, found := c.Params.Get("email")
 	if !found {
-		c.JSON(http.StatusBadRequest, "auth/missing-email")
+		c.JSON(http.StatusBadRequest, gin.H{"message": "auth/missing-email"})
 		log.Print("api.user.SignIn: Missing email")
+		return
 	}
 	email = strings.Replace(email, "%40", "@", 1)
 
 	password_hash, found := c.Params.Get("password")
 	if !found {
-		c.JSON(http.StatusBadRequest, "auth/missing-password")
+		c.JSON(http.StatusBadRequest, gin.H{"message": "auth/missing-password"})
 		log.Print("api.user.SignIn: Missing password")
+		return
 	}
 
 	user, err := db_user.GetByEmail(email)
 
 	if user.PasswordHash != password_hash {
-		c.JSON(http.StatusBadRequest, "auth/password-mismatch")
+		c.JSON(http.StatusBadRequest, gin.H{"message": "auth/password-mismatch"})
 		log.Printf("api.user.SignIn: Password mismatch\n	user.PasswordHash=%s\n	password_hash=%s", user.PasswordHash, password_hash)
+		return
 	}
 
 	if err != nil {
-		c.JSON(http.StatusBadRequest, "auth/email-not-found")
+		c.JSON(http.StatusBadRequest, gin.H{"message": "auth/email-not-found"})
 		log.Printf("api.user.SignIn: No user was found with the email '%s'", email)
+		return
 	}
 
 	db_user.UpdateSession(user)
@@ -43,21 +47,24 @@ func SignIn(c *gin.Context) {
 }
 
 func SignUp(c *gin.Context) {
-	name := c.DefaultPostForm("name", "nil")
+	name := c.DefaultPostForm("username", "nil")
 	password_hash := c.DefaultPostForm("password", "nil")
 	email := c.DefaultPostForm("email", "nil")
 
 	if name == "nil" {
-		c.JSON(http.StatusBadRequest, "auth/missing-username")
-		log.Print("api.user.SignUp: Missing name")
+		c.JSON(http.StatusBadRequest, gin.H{"message": "auth/missing-username"})
+		log.Print("api.user.SignUp: Missing username")
+		return
 	}
 	if password_hash == "nil" {
-		c.JSON(http.StatusBadRequest, "auth/missing-password")
+		c.JSON(http.StatusBadRequest, gin.H{"message": "auth/missing-password"})
 		log.Print("api.user.SignUp: Missing password")
+		return
 	}
 	if email == "nil" {
-		c.JSON(http.StatusBadRequest, "auth/missing-email")
+		c.JSON(http.StatusBadRequest, gin.H{"message": "auth/missing-email"})
 		log.Print("api.user.SignUp: Missing email")
+		return
 	}
 
 	user := helper.User{Name: name, PasswordHash: string(password_hash), Email: email}
