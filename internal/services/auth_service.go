@@ -34,17 +34,17 @@ func NewAuthService(userRepo repositories.UserRepository, sessionRepository repo
 func (s *authService) Authenticate(ctx context.Context, loginRequest *models.LoginRequest) (*models.User, error) {
 	user, err := s.userRepository.GetUserByEmail(context.Background(), loginRequest.Email)
 	if err != nil {
-		s.logger.Error("Error while getting user")
+		s.logger.Debug("Error while getting user")
 		return nil, err
 	}
 
 	if user == nil {
-		s.logger.Error("User not found")
-		return nil, errors.New("auth/user-not-found")
+		s.logger.Debug("User not found")
+		return nil, errors.New("user not found")
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(loginRequest.Password)); err != nil {
-		s.logger.Error("Error during password comparison")
+		s.logger.Debug("Error during password comparison")
 		return nil, errors.New("auth/invalid-credentials")
 	}
 

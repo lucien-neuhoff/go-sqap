@@ -34,7 +34,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	user, err := h.authService.Authenticate(context.Background(), &loginRequest)
 	if err != nil {
 		h.logger.Errorf("failed to authenticate user: %v", err)
-		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "auth/user-not-found"})
 		return
 	}
 
