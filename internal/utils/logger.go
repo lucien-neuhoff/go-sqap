@@ -27,9 +27,9 @@ func NewLogger(cfg *config.Config) *Logger {
 	}
 }
 
-func (l *Logger) Error(message string) {
+func (l *Logger) Error(args ...any) {
 	_, file, line, _ := runtime.Caller(1)
-	l.errorLogger.Printf("%s:%d %s", file, line, message)
+	l.errorLogger.Printf("%s:%d %s", file, line, fmt.Sprintf("%s", args...))
 }
 
 func (l *Logger) Errorf(message string, args ...any) {
@@ -37,9 +37,9 @@ func (l *Logger) Errorf(message string, args ...any) {
 	l.errorLogger.Printf("%s:%d %s", file, line, fmt.Sprintf(message, args...))
 }
 
-func (l *Logger) Info(message string) {
+func (l *Logger) Info(args ...any) {
 	_, file, line, _ := runtime.Caller(1)
-	l.infoLogger.Printf("%s:%d %s", file, line, message)
+	l.infoLogger.Printf("%s:%d %s", file, line, fmt.Sprintf("%s", args...))
 }
 
 func (l *Logger) Infof(message string, args ...any) {
@@ -47,12 +47,12 @@ func (l *Logger) Infof(message string, args ...any) {
 	l.infoLogger.Printf("%s:%d %s", file, line, fmt.Sprintf(message, args...))
 }
 
-func (l *Logger) Debug(message string) {
+func (l *Logger) Debug(args ...any) {
 	if !l.cfg.DEBUG {
 		return
 	}
 	_, file, line, _ := runtime.Caller(1)
-	l.debugLogger.Printf("%s:%d %s", file, line, message)
+	l.debugLogger.Printf("%s:%d %s", file, line, fmt.Sprintf("%s", args...))
 }
 
 func (l *Logger) Debugf(message string, args ...any) {

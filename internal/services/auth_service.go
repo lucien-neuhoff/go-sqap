@@ -13,7 +13,7 @@ import (
 )
 
 type AuthService interface {
-	Authenticate(ctx context.Context, loginRequest *models.LoginRequest) (*models.Session, error)
+	Authenticate(ctx context.Context, loginRequest *models.LoginRequest) (*models.User, error)
 	CreateSession(ctx context.Context, user_id string) (*models.Session, error)
 }
 
@@ -31,7 +31,7 @@ func NewAuthService(userRepo repositories.UserRepository, sessionRepository repo
 	}
 }
 
-func (s *authService) Authenticate(ctx context.Context, loginRequest *models.LoginRequest) (*models.Session, error) {
+func (s *authService) Authenticate(ctx context.Context, loginRequest *models.LoginRequest) (*models.User, error) {
 	user, err := s.userRepository.GetUserByEmail(context.Background(), loginRequest.Email)
 	if err != nil {
 		s.logger.Error("Error while getting user")
@@ -48,13 +48,7 @@ func (s *authService) Authenticate(ctx context.Context, loginRequest *models.Log
 		return nil, errors.New("auth/invalid-credentials")
 	}
 
-	session, err := s.CreateSession(ctx, user.UUID)
-	if err != nil {
-		s.logger.Error("Could not create session")
-		return nil, err
-	}
-
-	return session, nil
+	return user, nil
 }
 
 func (s *authService) CreateSession(ctx context.Context, user_id string) (*models.Session, error) {
