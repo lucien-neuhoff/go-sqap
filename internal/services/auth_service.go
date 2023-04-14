@@ -6,7 +6,9 @@ import (
 	"go-sqap/internal/models"
 	"go-sqap/internal/repositories"
 	"go-sqap/internal/utils"
+	"time"
 
+	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -32,25 +34,47 @@ func NewAuthService(userRepo repositories.UserRepository, sessionRepository repo
 func (s *authService) Authenticate(ctx context.Context, loginRequest *models.LoginRequest) (*models.Session, error) {
 	user, err := s.userRepository.GetUserByEmail(context.Background(), loginRequest.Email)
 	if err != nil {
+		s.logger.Error("Error while getting user")
 		return nil, err
+	}
+
+	if user == nil {
+		s.logger.Error("User not found")
+		return nil, errors.New("auth/user-not-found")
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(loginRequest.Password)); err != nil {
+		s.logger.Error("Error during password comparison")
 		return nil, errors.New("auth/invalid-credentials")
 	}
 
-	session, err := s.sessionRepository.CreateSession(ctx, user.UUID)
+	session, err := s.CreateSession(ctx, user.UUID)
+	if err != nil {
+		s.logger.Error("Could not create session")
+		return nil, err
+	}
+
+	return session, nil
+}
+
+func (s *authService) CreateSession(ctx context.Context, user_id string) (*models.Session, error) {
+	var session *models.Session
+
+	now := time.Now().UTC()
+
+	session.CreatedAt = now
+	session.UpdatedAt = now
+	session.UserID = user_id
+	session.UUID = uuid.New().String()
+	session.Token = utils.GenerateToken(255)
+
+	err := s.sessionRepository.CreateSession(ctx, session)
 	if err != nil {
 		return nil, err
 	}
 
-	return session, err
-}
-
-func (s *authService) CreateSession(ctx context.Context, user_id string) (*models.Session, error) {
-	session, err := s.sessionRepository.CreateSession(ctx, user_id)
-	if err != nil {
-		return nil, err
+	if session == nil {
+		return nil, errors.New("failed to create session")
 	}
 
 	return session, nil

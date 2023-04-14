@@ -5,13 +5,10 @@ import (
 	"database/sql"
 	"go-sqap/internal/models"
 	"go-sqap/internal/utils"
-	"time"
-
-	"github.com/google/uuid"
 )
 
 type SessionRepository interface {
-	CreateSession(ctx context.Context, user_id string) (*models.Session, error)
+	CreateSession(ctx context.Context, session *models.Session) error
 }
 
 type sessionRepository struct {
@@ -26,36 +23,25 @@ func NewSessionRepository(db *sql.DB, logger *utils.Logger) SessionRepository {
 	}
 }
 
-func (r *sessionRepository) CreateSession(ctx context.Context, user_id string) (*models.Session, error) {
-	var session *models.Session
-
-	session.UUID = uuid.New().String()
-
-	now := time.Now().UTC()
-	session.CreatedAt = now
-	session.UpdatedAt = now
-
-	session.Token = utils.GenerateToken(255)
-
-	query := "INSERT INTO session (uuid, user_id, token, created_at, updated_at) VALUES (?, ?, ?, ?, ?)"
+func (r *sessionRepository) CreateSession(ctx context.Context, session *models.Session) error {
+	query := "INSERT INTO sessions (user_id, token, created_at, updated_at) VALUES (?, ?, ?, ?)"
 
 	stmt, err := r.db.PrepareContext(ctx, query)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	defer stmt.Close()
 
 	_, err = stmt.ExecContext(
 		ctx,
-		session.UUID,
-		session.UserID,
-		session.Token,
-		session.CreatedAt,
-		session.UpdatedAt,
+		&session.UserID,
+		&session.Token,
+		&session.CreatedAt,
+		&session.UpdatedAt,
 	)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return session, nil
+	return nil
 }

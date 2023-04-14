@@ -3,6 +3,7 @@ package config
 import (
 	"log"
 	"os"
+	"strconv"
 
 	"github.com/joho/godotenv"
 )
@@ -16,6 +17,8 @@ type Config struct {
 
 	APIHost string
 	APIPort string
+
+	DEBUG bool
 }
 
 func LoadConfig(dotenv_path string) Config {
@@ -23,6 +26,12 @@ func LoadConfig(dotenv_path string) Config {
 
 	if err != nil {
 		log.Fatal("Error while loading .env file: ", err)
+	}
+
+	debug, err := strconv.ParseBool(os.Getenv("DEBUG"))
+	if err != nil {
+		log.Println("Error while parsing DEBUG to bool")
+		debug = false
 	}
 
 	return Config{
@@ -34,5 +43,7 @@ func LoadConfig(dotenv_path string) Config {
 
 		APIHost: os.Getenv("API_HOST"),
 		APIPort: os.Getenv("API_PORT"),
+
+		DEBUG: debug,
 	}
 }

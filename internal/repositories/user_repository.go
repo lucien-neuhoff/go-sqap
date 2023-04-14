@@ -6,7 +6,6 @@ import (
 	"errors"
 	"go-sqap/internal/models"
 	"go-sqap/internal/utils"
-	"time"
 
 	"github.com/google/uuid"
 )
@@ -32,11 +31,7 @@ func NewUserRepository(db *sql.DB, logger *utils.Logger) UserRepository {
 }
 
 func (r *userRepository) CreateUser(ctx context.Context, user *models.User) error {
-	now := time.Now().UTC()
-	user.CreatedAt.Time = now
-	user.UpdatedAt.Time = now
-
-	query := "INSERT INTO user (uuid, email, password) VALUES (?, ?, ?)"
+	query := "INSERT INTO users (uuid, email, password) VALUES (?, ?, ?)"
 
 	stmt, err := r.db.PrepareContext(ctx, query)
 	if err != nil {
@@ -60,7 +55,7 @@ func (r *userRepository) CreateUser(ctx context.Context, user *models.User) erro
 }
 
 func (r *userRepository) GetUserById(ctx context.Context, id uuid.UUID) (*models.User, error) {
-	query := "SELECT (uuid, email, password, created_at, updated_at) FROM users WHERE uuid='?'"
+	query := "SELECT uuid, email, password, created_at, updated_at FROM users WHERE uuid=?"
 
 	row := r.db.QueryRowContext(ctx, query, id)
 
@@ -85,32 +80,38 @@ func (r *userRepository) GetUserById(ctx context.Context, id uuid.UUID) (*models
 }
 
 func (r *userRepository) GetUserByEmail(ctx context.Context, email string) (*models.User, error) {
-	query := "SELECT (uuid, email, password, created_at, updated_at) FROM user WHERE email='?'"
+	r.logger.Debug("Preparing query")
+	query := "SELECT email, password, created_at, updated_at FROM users WHERE email=?"
 
+	r.logger.Debug("Querrying user")
 	row := r.db.QueryRowContext(ctx, query, email)
 
 	var user models.User
 
+	r.logger.Debug("Scanning row")
 	err := row.Scan(
-		&user.UUID,
 		&user.Email,
 		&user.Password,
 		&user.CreatedAt,
 		&user.UpdatedAt,
 	)
 
+	r.logger.Debug("Checking for errors")
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
+			r.logger.Debug("No rows")
 			return nil, nil
 		}
+		r.logger.Debugf("Error: %s", err.Error())
 		return nil, err
 	}
 
+	r.logger.Debugf("Returning user with email '%s'", user.Email)
 	return &user, nil
 }
 
 func (r *userRepository) UpdateUser(ctx context.Context, user *models.User) error {
-	query := "UPDATE users SET email='?', password='?', updated_at='?'"
+	query := "UPDATE users SET email=?, password=?, updated_at=?"
 
 	stmt, err := r.db.PrepareContext(ctx, query)
 	if err != nil {

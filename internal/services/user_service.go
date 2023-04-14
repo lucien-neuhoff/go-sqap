@@ -7,6 +7,10 @@ import (
 	"go-sqap/internal/models"
 	"go-sqap/internal/repositories"
 	"go-sqap/internal/utils"
+	"time"
+
+	"github.com/google/uuid"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type UserService interface {
@@ -34,9 +38,22 @@ func (s *userSerivce) CreateUser(user *models.User) error {
 	}
 
 	if err != nil {
-		return fmt.Errorf("failed to create user: %v", err)
+		return fmt.Errorf("failed to get user by email: %v", err)
 	}
 
+	password, err := bcrypt.GenerateFromPassword([]byte(user.Password), 14)
+	if err != nil {
+		return fmt.Errorf("error while hashing password: %v", err)
+	}
+
+	now := time.Now().UTC()
+
+	user.Password = string(password)
+	user.CreatedAt.Time = now
+	user.UpdatedAt.Time = now
+	user.UUID = uuid.NewString()
+
+	s.logger.Infof("Creating user with email '%s' & uuid '%s'", user.Email, user.UUID)
 	// Create the user
 	if err := s.userRepository.CreateUser(context.Background(), user); err != nil {
 		return fmt.Errorf("failed to create user: %v", err)

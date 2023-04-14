@@ -23,6 +23,7 @@ func NewUserHandler(userService services.UserService, logger *utils.Logger) *Use
 
 func (h *UserHandler) CreateUser(c *gin.Context) {
 	var req models.CreateUserRequest
+
 	if err := c.BindJSON(&req); err != nil {
 		h.logger.Errorf("failed to bind create user request: %v", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -35,13 +36,13 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 		return
 	}
 
-	var user_req *models.User
+	var user_req models.User
 	user_req.Email = req.Email
 	user_req.Password = req.Password
 
-	err := h.userService.CreateUser(user_req)
+	err := h.userService.CreateUser(&user_req)
 	if err != nil {
-		h.logger.Errorf("failed to create user: %v", err)
+		h.logger.Errorf("failed: %v", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -52,7 +53,7 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	}
 
-	c.JSON(http.StatusOK, user)
+	c.JSON(http.StatusCreated, user)
 }
 
 func (h *UserHandler) GetUsers(c *gin.Context) {
