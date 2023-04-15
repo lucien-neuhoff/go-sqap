@@ -52,7 +52,7 @@ func (s *authService) Authenticate(ctx context.Context, loginRequest *models.Log
 }
 
 func (s *authService) CreateSession(ctx context.Context, user_id string) (*models.Session, error) {
-	var session *models.Session
+	var session models.Session
 
 	now := time.Now().UTC()
 
@@ -62,14 +62,14 @@ func (s *authService) CreateSession(ctx context.Context, user_id string) (*model
 	session.UUID = uuid.New().String()
 	session.Token = utils.GenerateToken(255)
 
-	err := s.sessionRepository.CreateSession(ctx, session)
+	err := s.sessionRepository.CreateSession(ctx, &session)
 	if err != nil {
 		return nil, err
 	}
 
-	if session == nil {
+	if (session == models.Session{}) {
 		return nil, errors.New("failed to create session")
 	}
 
-	return session, nil
+	return &session, nil
 }

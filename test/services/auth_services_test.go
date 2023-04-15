@@ -95,10 +95,16 @@ func TestLoginUser(t *testing.T) {
 	require.Equal(t, http.StatusOK, resp.StatusCode)
 
 	// Unmarshal the response body into a User struct
-	var user models.User
-	err = json.Unmarshal(respBody, &user)
+	var response struct {
+		User struct {
+			UUID  string `json:"uuid"`
+			Email string `json:"email"`
+		} `json:"user"`
+		Token string `json:"token"`
+	}
+	err = json.Unmarshal(respBody, &response)
 	require.NoError(t, err)
 
 	// Assert that the user's fields match the request payload
-	require.Equal(t, createReq.Email, user.Email)
+	require.Equal(t, createReq.Email, response.User.Email)
 }

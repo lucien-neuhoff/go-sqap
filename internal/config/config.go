@@ -3,6 +3,7 @@ package config
 import (
 	"log"
 	"os"
+	"path/filepath"
 	"strconv"
 
 	"github.com/joho/godotenv"
@@ -19,6 +20,8 @@ type Config struct {
 	APIPort string
 
 	DEBUG bool
+
+	PREFIX_PATH string
 }
 
 func LoadConfig(dotenv_path string) Config {
@@ -30,8 +33,13 @@ func LoadConfig(dotenv_path string) Config {
 
 	debug, err := strconv.ParseBool(os.Getenv("DEBUG"))
 	if err != nil {
-		log.Println("Error while parsing DEBUG to bool")
+		log.Println("Error while parsing DEBUG to bool: ", err)
 		debug = false
+	}
+
+	workingDir, err := filepath.Abs(filepath.Dir("."))
+	if err != nil {
+		log.Println("Error while getting working directory: ", err)
 	}
 
 	return Config{
@@ -45,5 +53,7 @@ func LoadConfig(dotenv_path string) Config {
 		APIPort: os.Getenv("API_PORT"),
 
 		DEBUG: debug,
+
+		PREFIX_PATH: workingDir,
 	}
 }

@@ -81,7 +81,7 @@ func (r *userRepository) GetUserById(ctx context.Context, id uuid.UUID) (*models
 
 func (r *userRepository) GetUserByEmail(ctx context.Context, email string) (*models.User, error) {
 	r.logger.Debug("Preparing query")
-	query := "SELECT email, password, created_at, updated_at FROM users WHERE email=?"
+	query := "SELECT uuid, email, password, created_at, updated_at FROM users WHERE email=?"
 
 	r.logger.Debug("Querrying user")
 	row := r.db.QueryRowContext(ctx, query, email)
@@ -90,6 +90,7 @@ func (r *userRepository) GetUserByEmail(ctx context.Context, email string) (*mod
 
 	r.logger.Debug("Scanning row")
 	err := row.Scan(
+		&user.UUID,
 		&user.Email,
 		&user.Password,
 		&user.CreatedAt,

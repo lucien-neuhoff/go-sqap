@@ -38,6 +38,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		return
 	}
 
+	h.logger.Debug("UUID: ", user.UUID)
 	session, err := h.authService.CreateSession(context.Background(), user.UUID)
 	if err != nil {
 		h.logger.Errorf("failed to create session: %v", err)
@@ -46,5 +47,5 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	}
 
 	// TODO: Send the session token with asymetric encryption
-	c.JSON(http.StatusCreated, gin.H{"session_uuid": session.UUID})
+	c.JSON(http.StatusOK, gin.H{"user": gin.H{"uuid": user.UUID, "email": user.Email}, "token": session.Token})
 }
