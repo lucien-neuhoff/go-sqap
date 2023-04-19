@@ -13,14 +13,14 @@ import (
 
 type KeysHandler struct {
 	keysService services.KeysService
-	userService services.UserService
+	authService services.AuthService
 	logger      *utils.Logger
 }
 
-func NewKeysHandler(keysService services.KeysService, userSerivce services.UserService, logger *utils.Logger) *KeysHandler {
+func NewKeysHandler(keysService services.KeysService, authService services.AuthService, logger *utils.Logger) *KeysHandler {
 	return &KeysHandler{
 		keysService: keysService,
-		userService: userSerivce,
+		authService: authService,
 		logger:      logger,
 	}
 }
@@ -28,16 +28,15 @@ func NewKeysHandler(keysService services.KeysService, userSerivce services.UserS
 func (h *KeysHandler) ExchangeKeys(c *gin.Context) {
 	var req models.PublicKeyRequest
 
-	if err := c.BindJSON(&req); err != nil {
+	if err := c.BindJSON(&req); err == nil {
 		h.logger.Error("failed to bind save public key request: ", err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	}
 
-	user, err := h.userService.GetUserByEmail(req.Email)
+	user, err := h.authService.GetUserByEmail(req.Email)
 	if err != nil {
 		h.logger.Error("error while retrieving user by email: ", err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -48,17 +47,16 @@ func (h *KeysHandler) ExchangeKeys(c *gin.Context) {
 	err = h.keysService.SaveUserPublicKey(context.Background(), publicKey_req)
 	if err != nil {
 		h.logger.Error("error while saving user public key: ", err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "error while saving public key"})
 		return
 	}
 
-	serverPublicKey := h.keysService.GetServerPublicKey()
-	serverPublicKeyString, err := encryption.PublicKeyToString(&serverPublicKey)
+	serverPublicKeyStr, err := encryption.GetServerPublicKeyString()
 	if err != nil {
 		h.logger.Error("error while parsing public key to string: ", err)
-		c.IndentedJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "error while getting server's public key"})
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"server_public_key": serverPublicKeyString})
+	c.JSON(http.StatusCreated, gin.H{"server_public_key": serverPublicKeyStr})
 }

@@ -2,7 +2,6 @@ package services
 
 import (
 	"context"
-	"crypto/rsa"
 	"go-sqap/internal/models"
 	"go-sqap/internal/repositories"
 	"go-sqap/internal/utils"
@@ -11,22 +10,19 @@ import (
 type KeysService interface {
 	SaveUserPublicKey(ctx context.Context, publicKey models.PublicKey) error
 	GetUserPublicKey(ctx context.Context, user *models.User) (*string, error)
-	GetServerPublicKey() rsa.PublicKey
 }
 
 type keysService struct {
-	userRepository  repositories.UserRepository
-	keysRepository  repositories.KeysRepository
-	logger          *utils.Logger
-	serverPublicKey *rsa.PublicKey
+	userRepository repositories.UserRepository
+	keysRepository repositories.KeysRepository
+	logger         *utils.Logger
 }
 
-func NewKeysService(userRepo repositories.UserRepository, keysRepo repositories.KeysRepository, logger *utils.Logger, serverPublicKey *rsa.PublicKey) KeysService {
+func NewKeysService(userRepo repositories.UserRepository, keysRepo repositories.KeysRepository, logger *utils.Logger) KeysService {
 	return &keysService{
-		userRepository:  userRepo,
-		keysRepository:  keysRepo,
-		logger:          logger,
-		serverPublicKey: serverPublicKey,
+		userRepository: userRepo,
+		keysRepository: keysRepo,
+		logger:         logger,
 	}
 }
 
@@ -46,8 +42,4 @@ func (s *keysService) GetUserPublicKey(ctx context.Context, user *models.User) (
 	}
 
 	return publicKey, nil
-}
-
-func (s *keysService) GetServerPublicKey() rsa.PublicKey {
-	return *s.serverPublicKey
 }

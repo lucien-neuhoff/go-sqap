@@ -1,5 +1,10 @@
--   `auth/invalid-request` failed to parse request
--   `auth/invalid-credentials` no user were found with those credentials
--   `auth/internal-server-error` internal error server error while processing request
--   `auth/user-already-exists` a user already exists with the given email
--   `auth/user-not-found` No user were found with the given email/id
+-   ### Auth
+    -   `auth/invalid-request` failed to parse request
+    -   `auth/invalid-credentials` no user were found with those credentials
+    -   `auth/internal-server-error` internal error server error while processing request
+    -   `auth/user-already-exists` a user already exists with the given email
+    -   `auth/user-not-found` No user were found with the given email/id
+-   ### Session
+    -   `session/failed` session creation failed
+    -   `session/missing-key` missing public key / failed to parse
+    -   `session/token-encryption` failed to encrypt token using client's public key

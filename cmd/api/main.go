@@ -19,7 +19,7 @@ func main() {
 	logger := utils.NewLogger(&cfg)
 	db := database.ConnectDatabase(cfg)
 
-	serverPublicKey, err := encryption.Init()
+	err := encryption.Init()
 	if err != nil {
 		logger.Error("Error while generating RSA keypair: ", err)
 	}
@@ -28,15 +28,14 @@ func main() {
 	userRepo := repositories.NewUserRepository(db, logger)
 	sessionRepo := repositories.NewSessionRepository(db, logger)
 
-	keysService := services.NewKeysService(userRepo, keysRepo, logger, serverPublicKey)
-	userService := services.NewUserService(userRepo, logger)
+	keysService := services.NewKeysService(userRepo, keysRepo, logger)
+	sessionService := services.NewSessionService(userRepo, sessionRepo, logger)
 	authService := services.NewAuthService(userRepo, sessionRepo, logger)
 
-	keysHandler := handlers.NewKeysHandler(keysService, userService, logger)
-	userHandler := handlers.NewUserHandler(userService, logger)
-	authHandler := handlers.NewAuthHandler(authService, logger)
+	keysHandler := handlers.NewKeysHandler(keysService, authService, logger)
+	authHandler := handlers.NewAuthHandler(authService, sessionService, logger)
 
-	router := router.CreateRouter(*authHandler, *userHandler, *keysHandler)
+	router := router.CreateRouter(*authHandler, *keysHandler)
 
 	logger.Infof("Starting server on %s:%s", cfg.APIHost, cfg.APIPort)
 	if err := http.ListenAndServe(fmt.Sprintf(":%s", cfg.APIPort), router); err != nil {

@@ -17,13 +17,13 @@ const (
 var privateKey *rsa.PrivateKey
 var publicKey *rsa.PublicKey
 
-func Init() (*rsa.PublicKey, error) {
+func Init() error {
 	var err error
 
 	if _, err = os.Stat(privateKeyFile); err != nil {
 		privateKey, err = rsa.GenerateKey(rand.Reader, 2048)
 		if err != nil {
-			return nil, err
+			return err
 		}
 
 		privKeyBytes := x509.MarshalPKCS1PrivateKey(privateKey)
@@ -31,19 +31,25 @@ func Init() (*rsa.PublicKey, error) {
 			Type:  "RSA PRIVATE KEY",
 			Bytes: privKeyBytes,
 		})
-		err = os.WriteFile(privateKeyFile, privKeyPem, 0600)
+		f, err := os.Create(privateKeyFile)
 		if err != nil {
-			return nil, err
+			return err
+		}
+		defer f.Close()
+
+		_, err = f.Write(privKeyPem)
+		if err != nil {
+			return err
 		}
 	} else {
 		privKeyPem, err := os.ReadFile(privateKeyFile)
 		if err != nil {
-			return nil, err
+			return err
 		}
 		privKeyBlock, _ := pem.Decode(privKeyPem)
 		privateKey, err = x509.ParsePKCS1PrivateKey(privKeyBlock.Bytes)
 		if err != nil {
-			return nil, err
+			return err
 		}
 	}
 
@@ -52,37 +58,50 @@ func Init() (*rsa.PublicKey, error) {
 
 		pubKeyBytes, err := x509.MarshalPKIXPublicKey(publicKey)
 		if err != nil {
-			return nil, err
+			return err
 		}
 		pubKeyPem := pem.EncodeToMemory(&pem.Block{
 			Type:  "RSA PUBLIC KEY",
 			Bytes: pubKeyBytes,
 		})
-		err = os.WriteFile(publicKeyFile, pubKeyPem, 0644)
+
+		f, err := os.Create(publicKeyFile)
 		if err != nil {
-			return nil, err
+			return err
+		}
+		defer f.Close()
+
+		_, err = f.Write(pubKeyPem)
+		if err != nil {
+			return err
 		}
 	} else {
 		pubKeyPem, err := os.ReadFile(publicKeyFile)
 		if err != nil {
-			return nil, err
+			return err
 		}
 		pubKeyBlock, _ := pem.Decode(pubKeyPem)
 		pubKeyIface, err := x509.ParsePKIXPublicKey(pubKeyBlock.Bytes)
 		if err != nil {
-			return nil, err
+			return err
 		}
 		publicKey = pubKeyIface.(*rsa.PublicKey)
 	}
 
-	return publicKey, nil
+	return nil
 }
 
-func Encrypt(data []byte) ([]byte, error) {
-	if publicKey == nil {
-		return nil, errors.New("encryption public key not found")
+func Encrypt(data []byte, userPublicKey rsa.PublicKey) ([]byte, error) {
+	return rsa.EncryptPKCS1v15(rand.Reader, &userPublicKey, data)
+}
+
+func EncryptS(data []byte, userPublicKeyStr string) ([]byte, error) {
+	userPublicKey, err := StringToPublicKey(userPublicKeyStr)
+	if err != nil {
+		return nil, err
 	}
-	return rsa.EncryptPKCS1v15(rand.Reader, publicKey, data)
+
+	return rsa.EncryptPKCS1v15(rand.Reader, userPublicKey, data)
 }
 
 func Decrypt(data []byte) ([]byte, error) {
@@ -120,4 +139,17 @@ func StringToPublicKey(publicKeyString string) (*rsa.PublicKey, error) {
 	}
 
 	return rsaPublicKey, nil
+}
+
+func GetServerPublicKey() *rsa.PublicKey {
+	return publicKey
+}
+
+func GetServerPublicKeyString() (*string, error) {
+	publicKeyStr, err := PublicKeyToString(publicKey)
+	if err != nil {
+		return nil, err
+	}
+
+	return &publicKeyStr, nil
 }

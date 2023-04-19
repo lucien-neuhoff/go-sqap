@@ -4,20 +4,23 @@ import (
 	"bytes"
 	"crypto/rand"
 	"crypto/rsa"
+	"crypto/x509"
 	"encoding/json"
+	"encoding/pem"
 	"fmt"
 	"go-sqap/encryption"
 	"go-sqap/internal/models"
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/require"
 )
 
-func TestKeys(t *testing.T) {
+func TestSession(t *testing.T) {
 	// Initialize the test server and client
 	router := gin.Default()
 	server := httptest.NewServer(router)
@@ -37,10 +40,9 @@ func TestKeys(t *testing.T) {
 		return
 	}
 
-	// Create the request payload
-	createReq := models.PublicKeyRequest{
-		Email: "john.doe@example.com",
-		Key:   publicKeyString,
+	createReq := models.CreateSessionRequest{
+		PublicKey: publicKeyString,
+		UserID:    nil,
 	}
 
 	// Marshal the request payload into JSON
@@ -74,6 +76,18 @@ func TestKeys(t *testing.T) {
 	serverPublicKeyStr, ok := response["server_public_key"]
 	require.True(t, ok)
 
-	_, err = encryption.StringToPublicKey(serverPublicKeyStr)
+	serverPublicKey, err := encryption.StringToPublicKey(serverPublicKeyStr)
 	require.NoError(t, err)
+
+	keyData, err := os.ReadFile("../../public.pem")
+	require.NoError(t, err)
+
+	// Parse the PEM block containing the public key
+	block, _ := pem.Decode(keyData)
+
+	// Parse the RSA public key
+	publicKey, err := x509.ParsePKIXPublicKey(block.Bytes)
+	require.NoError(t, err)
+
+	require.Equal(t, publicKey, serverPublicKey)
 }

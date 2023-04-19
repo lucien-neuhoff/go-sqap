@@ -9,3 +9,7 @@ type PublicKeyRequest struct {
 	Email string `json:"email"`
 	Key   string `json:"key"`
 }
+
+type TemporaryPublicKey struct {
+	Key string `json:"key"`
+}

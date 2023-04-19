@@ -8,7 +8,7 @@ import (
 )
 
 type SessionRepository interface {
-	CreateSession(ctx context.Context, session *models.Session) error
+	SaveSession(ctx context.Context, session *models.Session) error
 }
 
 type sessionRepository struct {
@@ -23,8 +23,8 @@ func NewSessionRepository(db *sql.DB, logger *utils.Logger) SessionRepository {
 	}
 }
 
-func (r *sessionRepository) CreateSession(ctx context.Context, session *models.Session) error {
-	query := "INSERT INTO sessions (user_id, token, created_at, updated_at) VALUES (?, ?, ?, ?)"
+func (r *sessionRepository) SaveSession(ctx context.Context, session *models.Session) error {
+	query := "INSERT INTO sessions (user_id, token) VALUES (?, ?)"
 
 	stmt, err := r.db.PrepareContext(ctx, query)
 	if err != nil {
@@ -36,8 +36,6 @@ func (r *sessionRepository) CreateSession(ctx context.Context, session *models.S
 		ctx,
 		&session.UserID,
 		&session.Token,
-		&session.CreatedAt,
-		&session.UpdatedAt,
 	)
 	if err != nil {
 		return err
