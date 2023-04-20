@@ -34,8 +34,9 @@ func main() {
 
 	keysHandler := handlers.NewKeysHandler(keysService, authService, logger)
 	authHandler := handlers.NewAuthHandler(authService, sessionService, logger)
+	sessionHandler := handlers.NewSessionHandler(sessionService, logger)
 
-	router := router.CreateRouter(*authHandler, *keysHandler)
+	router := router.CreateRouter(authHandler, keysHandler, sessionHandler)
 
 	logger.Infof("Starting server on %s:%s", cfg.APIHost, cfg.APIPort)
 	if err := http.ListenAndServe(fmt.Sprintf(":%s", cfg.APIPort), router); err != nil {

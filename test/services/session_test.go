@@ -28,7 +28,7 @@ func TestSession(t *testing.T) {
 
 	client := server.Client()
 
-	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	privateKey, err := rsa.GenerateKey(rand.Reader, 4096)
 	if err != nil {
 		fmt.Println("Error while generating private key: ", err)
 		return
@@ -49,7 +49,7 @@ func TestSession(t *testing.T) {
 	reqBody, err := json.Marshal(createReq)
 	require.NoError(t, err)
 	// Create the HTTP request
-	req, err := http.NewRequest("POST", "http://127.0.0.1:8080/api/keys", bytes.NewBuffer(reqBody))
+	req, err := http.NewRequest("POST", "http://127.0.0.1:8080/api/session/create", bytes.NewBuffer(reqBody))
 	require.NoError(t, err)
 
 	// Set the content type header
@@ -90,4 +90,13 @@ func TestSession(t *testing.T) {
 	require.NoError(t, err)
 
 	require.Equal(t, publicKey, serverPublicKey)
+
+	fmt.Println(response["token"])
+	fmt.Println([]byte(response["token"]))
+	fmt.Println(privateKey)
+
+	decryptedToken, err := encryption.Decrypt([]byte(response["token"]), privateKey)
+	require.NoError(t, err)
+
+	fmt.Println(decryptedToken)
 }

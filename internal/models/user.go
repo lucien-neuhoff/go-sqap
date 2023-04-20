@@ -11,6 +11,12 @@ type User struct {
 	UpdatedAt sql.NullTime `json:"updated_at"`
 }
 
+type EncryptedUser struct {
+	UUID      []byte
+	Email     []byte
+	CreatedAt []byte
+}
+
 type CreateUserRequest struct {
 	Email     string `json:"email" binding:"required,email"`
 	Password  string `json:"password" binding:"required,min=8"`

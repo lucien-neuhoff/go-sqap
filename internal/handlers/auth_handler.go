@@ -40,29 +40,29 @@ func (h *AuthHandler) LoginUser(c *gin.Context) {
 		return
 	}
 
-	h.logger.Debug("Parsing public key as string")
-	publicKey, err := encryption.StringToPublicKey(user.PublicKey)
-	if err != nil {
-		h.logger.Error("Error while parsing public key as string")
-		return
-	}
-
 	h.logger.Debug("UUID: ", user.UUID)
-	session, err := h.sessionService.CreateSession(models.Session{UserID: &user.UUID, PublicKey: *publicKey})
+	session, err := h.sessionService.CreateSession(user.PublicKey, &user.UUID)
 	if err != nil {
 		h.logger.Errorf("Error while creating session: %v", err)
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "auth/internal-server-error"})
 		return
 	}
 
-	// TODO: Send the session token with asymetric encryption
-	encrypted_token, err := encryption.Encrypt([]byte(session.Token), session.PublicKey)
+	encryptedToken, err := encryption.Encrypt([]byte(session.Token), &session.PublicKey)
 	if err != nil {
 		h.logger.Error("Error while encrypting token: ", err)
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "auth/internal-server-error"})
+		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"user": gin.H{"uuid": user.UUID, "email": user.Email}, "token": encrypted_token})
+	encryptedUser, err := encryption.EncryptUser(*user, &session.PublicKey)
+	if err != nil {
+		h.logger.Error("Error while encrypting user: ", err)
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "auth/internal-server-error"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"user": encryptedUser, "token": encryptedToken})
 }
 
 func (h *AuthHandler) RegisterUser(c *gin.Context) {

@@ -4,8 +4,10 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
+	"encoding/binary"
 	"encoding/pem"
 	"errors"
+	"go-sqap/internal/models"
 	"os"
 )
 
@@ -21,7 +23,7 @@ func Init() error {
 	var err error
 
 	if _, err = os.Stat(privateKeyFile); err != nil {
-		privateKey, err = rsa.GenerateKey(rand.Reader, 2048)
+		privateKey, err = rsa.GenerateKey(rand.Reader, 4096)
 		if err != nil {
 			return err
 		}
@@ -91,8 +93,8 @@ func Init() error {
 	return nil
 }
 
-func Encrypt(data []byte, userPublicKey rsa.PublicKey) ([]byte, error) {
-	return rsa.EncryptPKCS1v15(rand.Reader, &userPublicKey, data)
+func Encrypt(data []byte, userPublicKey *rsa.PublicKey) ([]byte, error) {
+	return rsa.EncryptPKCS1v15(rand.Reader, userPublicKey, data)
 }
 
 func EncryptS(data []byte, userPublicKeyStr string) ([]byte, error) {
@@ -104,7 +106,33 @@ func EncryptS(data []byte, userPublicKeyStr string) ([]byte, error) {
 	return rsa.EncryptPKCS1v15(rand.Reader, userPublicKey, data)
 }
 
-func Decrypt(data []byte) ([]byte, error) {
+func EncryptUser(user models.User, userPublicKey *rsa.PublicKey) (*models.EncryptedUser, error) {
+	uuidBytes := []byte(user.UUID)
+	emailBytes := []byte(user.Email)
+
+	createdAtBytes := make([]byte, user.CreatedAt.Time.Unix())
+	binary.BigEndian.PutUint64(createdAtBytes, uint64(user.CreatedAt.Time.Unix()))
+
+	encryptedUUID, err := Encrypt(uuidBytes, userPublicKey)
+	if err != nil {
+		return nil, err
+	}
+
+	encryptedEmail, err := Encrypt(emailBytes, userPublicKey)
+	if err != nil {
+		return nil, err
+	}
+
+	encryptedCreatedAt, err := Encrypt(createdAtBytes, userPublicKey)
+	if err != nil {
+		return nil, err
+	}
+
+	encryptedUser := models.EncryptedUser{UUID: encryptedUUID, Email: encryptedEmail, CreatedAt: encryptedCreatedAt}
+	return &encryptedUser, nil
+}
+
+func Decrypt(data []byte, privateKey *rsa.PrivateKey) ([]byte, error) {
 	if privateKey == nil {
 		return nil, errors.New("decryption private key not found")
 	}

@@ -32,14 +32,14 @@ func (h *SessionHandler) CreateSession(c *gin.Context) {
 		return
 	}
 
-	session, err := h.sessionService.CreateSession(createSessionRequest.UserID, createSessionRequest.PublicKey)
+	session, err := h.sessionService.CreateSession(createSessionRequest.PublicKey, createSessionRequest.UserID)
 	if err != nil {
 		h.logger.Error("Error while creating a new session: ", err)
 		c.AbortWithStatusJSON(http.StatusBadRequest, err.Error())
 		return
 	}
 
-	encryptedSessionToken, err := encryption.Encrypt([]byte(session.Token), session.PublicKey)
+	encryptedSessionToken, err := encryption.Encrypt([]byte(session.Token), &session.PublicKey)
 	if err != nil {
 		h.logger.Error("Error while encrypting session token: ", err)
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "session/token-encryption"})
@@ -51,5 +51,6 @@ func (h *SessionHandler) CreateSession(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "session/token-encryption"})
 		return
 	}
-	c.JSON(http.StatusAccepted, gin.H{"server_public_key": serverPublicKeyString, "token": encryptedSessionToken})
+
+	c.JSON(http.StatusCreated, gin.H{"server_public_key": serverPublicKeyString, "token": encryptedSessionToken})
 }
