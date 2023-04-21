@@ -35,7 +35,7 @@ func (h *SessionHandler) CreateSession(c *gin.Context) {
 	session, err := h.sessionService.CreateSession(createSessionRequest.PublicKey, createSessionRequest.UserID)
 	if err != nil {
 		h.logger.Error("Error while creating a new session: ", err)
-		c.AbortWithStatusJSON(http.StatusBadRequest, err.Error())
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "session/internal-server-error"})
 		return
 	}
 

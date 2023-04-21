@@ -8,3 +8,4 @@
     -   `session/failed` session creation failed
     -   `session/missing-key` missing public key / failed to parse
     -   `session/token-encryption` failed to encrypt token using client's public key
+    -   `session/interal-server-error` internal server error while processing request

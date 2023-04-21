@@ -5,6 +5,8 @@
 ├── cmd
 │   └── api
 │       └── main.go
+├── encryption
+│   └── encryption.go
 ├── internal
 │   ├── config
 │   │   └── config.go
@@ -16,7 +18,8 @@
 │   │       └── create_public_keys_table.sql
 │   ├── handlers
 │   │   ├── auth_handler.go
-│   │   ├── user_handler.go
+│   │   ├── keys_handler.go
+│   │   ├── session_handler.go
 │   │   └── validate_create_user_request.go
 │   ├── models
 │   │   ├── login_request.go
@@ -24,13 +27,15 @@
 │   │   ├── session.go
 │   │   └── user.go
 │   ├── repositories
+│   │   ├── keys_repository.go
 │   │   ├── session_repository.go
 │   │   └── user_repository.go
 │   ├── router
 │   │   └── router.go
 │   ├── services
 │   │   ├── auth_service.go
-│   │   └── user_service.go
+│   │   ├── keys_service.go
+│   │   └── session_service.go
 │   └── utils
 │       ├── utils.go
 │       └── logger.go
@@ -38,8 +43,13 @@
 │   ├── controllers
 │   │   └── auth_test.go
 │   ├── services
-│   │   └── auth_service_test.go
+│   │   ├── auth_test.go
+│   │   ├── keys_test.go
+│   │   └── session_test.go
 │   └── test_helper.go
 ├── .env
+├── go.mod
+├── private.pem
+├── public.pem
 └── go.mod
 ```
