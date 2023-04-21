@@ -8,7 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func CreateRouter(authHandler *handlers.AuthHandler, keysHandler *handlers.KeysHandler, sessionHandler *handlers.SessionHandler) *gin.Engine {
+func CreateRouter(authHandler *handlers.AuthHandler, sessionHandler *handlers.SessionHandler) *gin.Engine {
 	router := gin.Default()
 
 	router.Use(cors.New(cors.Config{
@@ -24,8 +24,8 @@ func CreateRouter(authHandler *handlers.AuthHandler, keysHandler *handlers.KeysH
 	{
 		api.POST("/login", authHandler.LoginUser)
 		api.POST("/register", authHandler.RegisterUser)
-		api.POST("/keys", keysHandler.ExchangeKeys)
 		api.POST("/session/create", sessionHandler.CreateSession)
+		api.PUT("/session/validate", sessionHandler.ValidateSession)
 	}
 
 	return router

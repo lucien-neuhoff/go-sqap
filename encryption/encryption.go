@@ -7,6 +7,7 @@ import (
 	"encoding/binary"
 	"encoding/pem"
 	"errors"
+	"fmt"
 	"go-sqap/internal/models"
 	"os"
 )
@@ -93,12 +94,12 @@ func Init() error {
 	return nil
 }
 
-func Encrypt(data []byte, userPublicKey *rsa.PublicKey) ([]byte, error) {
-	return rsa.EncryptPKCS1v15(rand.Reader, userPublicKey, data)
+func Encrypt(data []byte, publicKey *rsa.PublicKey) ([]byte, error) {
+	return rsa.EncryptPKCS1v15(rand.Reader, publicKey, data)
 }
 
-func EncryptS(data []byte, userPublicKeyStr string) ([]byte, error) {
-	userPublicKey, err := StringToPublicKey(userPublicKeyStr)
+func EncryptS(data []byte, publicKeyString string) ([]byte, error) {
+	userPublicKey, err := StringToPublicKey(publicKeyString)
 	if err != nil {
 		return nil, err
 	}
@@ -106,24 +107,24 @@ func EncryptS(data []byte, userPublicKeyStr string) ([]byte, error) {
 	return rsa.EncryptPKCS1v15(rand.Reader, userPublicKey, data)
 }
 
-func EncryptUser(user models.User, userPublicKey *rsa.PublicKey) (*models.EncryptedUser, error) {
+func EncryptUser(user models.User, publicKey *rsa.PublicKey) (*models.EncryptedUser, error) {
 	uuidBytes := []byte(user.UUID)
 	emailBytes := []byte(user.Email)
 
 	createdAtBytes := make([]byte, user.CreatedAt.Time.Unix())
 	binary.BigEndian.PutUint64(createdAtBytes, uint64(user.CreatedAt.Time.Unix()))
 
-	encryptedUUID, err := Encrypt(uuidBytes, userPublicKey)
+	encryptedUUID, err := Encrypt(uuidBytes, publicKey)
 	if err != nil {
 		return nil, err
 	}
 
-	encryptedEmail, err := Encrypt(emailBytes, userPublicKey)
+	encryptedEmail, err := Encrypt(emailBytes, publicKey)
 	if err != nil {
 		return nil, err
 	}
 
-	encryptedCreatedAt, err := Encrypt(createdAtBytes, userPublicKey)
+	encryptedCreatedAt, err := Encrypt(createdAtBytes, publicKey)
 	if err != nil {
 		return nil, err
 	}
@@ -136,6 +137,7 @@ func Decrypt(data []byte, privateKey *rsa.PrivateKey) ([]byte, error) {
 	if privateKey == nil {
 		return nil, errors.New("decryption private key not found")
 	}
+	fmt.Println("Decrypting\n", data, "\nWith\n", privateKey)
 	return rsa.DecryptPKCS1v15(rand.Reader, privateKey, data)
 }
 

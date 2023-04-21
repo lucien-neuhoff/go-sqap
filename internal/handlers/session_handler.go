@@ -54,3 +54,7 @@ func (h *SessionHandler) CreateSession(c *gin.Context) {
 
 	c.JSON(http.StatusCreated, gin.H{"server_public_key": serverPublicKeyString, "token": encryptedSessionToken})
 }
+
+func (h *SessionHandler) ValidateSession(c *gin.Context) {
+
+}
